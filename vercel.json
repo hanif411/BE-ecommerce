@@ -7,10 +7,5 @@
     "routes":[{
         "src":"/(.*)",
         "dest":"index.js"
-    }],
-    "env": {
-    "DATABASE": "mongodb+srv://hanifsholihin884:g3FQITdfe8JOonS5@ecommerce.qnhad0n.mongodb.net/?retryWrites=true&w=majority&appName=Ecommerce", 
-    "NODE_ENV": "production",
-    "JWT_SECRET": "secret-jwt"
-  }
+    }]
 }
