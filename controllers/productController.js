@@ -17,23 +17,23 @@ import Product from "../models/productModels.js";
     
     
     if(req.query.nameproduct){
-        queryobj = namequery.find({
+        namequery = namequery.find({
             name : {$regex :req.query.nameproduct, $options:"i"}
         })
     }
     
     const excludedField = ["page", "limit", "nameproduct"];
     
-    excludedField.forEach((element)=> delete queryobj[element])
+    excludedField.forEach((element) => delete namequery[element])
     
-    const queryobj = {...req.query}
+    const nameproduct = {...req.query}
 
     //pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    namequery = await namequery.find(queryobj).skip(skip).limit(limit);
+    namequery = await namequery.find(nameproduct).skip(skip).limit(limit);
 
     const products = await namequery;
 
