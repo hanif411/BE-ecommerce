@@ -71,7 +71,7 @@ export const detailOrder = asyncHandler(async (req,res) =>{
 })
 
 export const currentUserOrder = asyncHandler(async (req,res) =>{
-    const order = await Order.find({user: req.params.id})
+    const order = await Order.find({user: req.User._id})
     return res.status(200).json({
         data :order,
         success: true,
