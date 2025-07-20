@@ -55,6 +55,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const order = await Order.create({
     user: req.User._id,
+    status: "pending",
     itemsdetail: orderItem,
     total,
     firstName,
@@ -77,6 +78,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     },
     callbacks: {
       finish: "http://localhost:5173/",
+      notification:
+        "https://be-ecommerce-dun.vercel.app/api/v1/order/callback/midtrans",
     },
   };
 
