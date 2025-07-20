@@ -137,6 +137,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
   );
 
   const orderData = await Order.findById(orderId);
+  console.log(`order data = ${orderData}`);
 
   if (!orderData) {
     res.status(404);
