@@ -1,5 +1,6 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import Product from "../models/productModels.js";
+import { v2 as cloudinary } from 'cloudinary';
 
  export const createProduct = asyncHandler(async (req,res) =>{
     const newProduct = await Product.create(req.body)
@@ -12,35 +13,47 @@ import Product from "../models/productModels.js";
 
  export const allProduct = asyncHandler(async (req,res) =>{
 
-    //fungsi jika ada request page dan limit
-    let namequery = Product.find()
+    const filterQuery = { ...req.query }
     
-    
-    if(req.query.nameproduct){
-        namequery = namequery.find({
-            name : {$regex :req.query.nameproduct, $options:"i"}
-        })
-    }
-    
-    const excludedField = ["page", "limit", "nameproduct"];
-    
-    excludedField.forEach((element) => delete namequery[element])
-    
-    const nameproduct = {...req.query}
+    const querytidakbutuh = ['page', 'limit'];
+    querytidakbutuh.forEach((el) => delete filterQuery[el]);
 
-    //pagination
+    Object.keys(filterQuery).forEach(el => {
+        if (filterQuery[el] === '') {
+            delete filterQuery[el];
+        }
+    });
+
+    if (filterQuery.nameproduct) {
+        filterQuery.nameproduct = { $regex: filterQuery.nameproduct, $options: 'i' };
+    } else {
+        delete filterQuery.nameproduct;
+    }
+
+    let query = Product.find(filterQuery);
+
+
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 3;
     const skip = (page - 1) * limit;
 
-    namequery = await namequery.find(nameproduct).skip(skip).limit(limit);
+    query = query.skip(skip).limit(limit);
 
-    const products = await namequery;
+    const products = await query;
+
+    const totalProducts = await Product.countDocuments(filterQuery);
 
     return res.status(200).json({
-        message:"berhasil menampilkan data",
-        data:products
-        })
+        message: "Berhasil menampilkan data",
+        results: products.length,
+        pagination: {
+            page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts,
+            skip
+        },
+        data: products
+    });
 
 })
 
@@ -86,18 +99,26 @@ import Product from "../models/productModels.js";
 })
 
  export const fileUpload = asyncHandler(async (req,res) =>{
-    const file = req.file
+    const file = req.file;
 
     if(!file){
-        res.status(400)
+        res.status(400);
         throw new Error('silahkan upload file')
     }
 
-    const imagefilename = file.filename;
-    const pathimagefile = `/uploads/${imagefilename}`;
+    const uploadstream = cloudinary.uploader.upload_stream({
+        folder:'/public/uploads',
+        allowed_formats:['jpg','png']
+    }, (error,result) =>
+        { if(error) res.status(500).json({message:error});
+        else res.status(200).json({message:result})
 
-    res.status(200).json({
-        message:"berhasil upload file",
-        image: pathimagefile
+        res.status(200).json({
+            message:'berhasil upload file',
+            url: result.secure_url,
+            public_id: result.public_id
+        })
     })
+
+    uploadstream.end(file.buffer)
 })
