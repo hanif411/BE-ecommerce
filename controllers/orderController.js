@@ -76,11 +76,6 @@ export const createOrder = asyncHandler(async (req, res) => {
       email: email,
       phone: phone,
     },
-    callbacks: {
-      finish: "http://localhost:5173/",
-      notification:
-        "https://be-ecommerce-dun.vercel.app/api/v1/order/callback/midtrans",
-    },
   };
 
   let token = await snap.createTransaction(parameter);
@@ -129,7 +124,6 @@ export const callbackPayment = asyncHandler(async (req, res) => {
   let fraudStatus = statusResponse.fraud_status;
 
   const orderData = await Order.findById(orderId);
-  console.log(orderData);
 
   if (!orderData) {
     res.status(404);
@@ -142,7 +136,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
       const orderProduct = orderData.itemsdetail;
 
       for (const itemProduct of orderProduct) {
-        const product = await Product.findById(itemProduct._id);
+        const product = await Product.findById(itemProduct.product);
 
         if (!product) {
           res.status(404);
@@ -159,7 +153,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
     const orderProduct = orderData.itemsdetail;
 
     for (const itemProduct of orderProduct) {
-      const product = await Product.findById(itemProduct._id);
+      const product = await Product.findById(itemProduct.product);
 
       if (!product) {
         res.status(404);
