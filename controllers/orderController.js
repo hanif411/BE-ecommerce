@@ -117,7 +117,13 @@ export const currentUserOrder = asyncHandler(async (req, res) => {
 });
 
 export const callbackPayment = asyncHandler(async (req, res) => {
-  const statusResponse = await snap.transaction.notification(req.body);
+  console.log("--- DEBUG callbackPayment START ---");
+  console.log(
+    "DEBUG callbackPayment: Request Body received:",
+    JSON.stringify(req.body, null, 2)
+  );
+
+  let statusResponse = await snap.transaction.notification(req.body);
 
   let orderId = statusResponse.order_id;
   let transactionStatus = statusResponse.transaction_status;
