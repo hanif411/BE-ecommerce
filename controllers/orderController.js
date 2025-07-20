@@ -129,6 +129,10 @@ export const callbackPayment = asyncHandler(async (req, res) => {
   let transactionStatus = statusResponse.transaction_status;
   let fraudStatus = statusResponse.fraud_status;
 
+  console.log(
+    `DEBUG callbackPayment: Parsed Notification -> Order ID: ${orderId}, Transaction Status: ${transactionStatus}, Fraud Status: ${fraudStatus}`
+  );
+
   const orderData = await Order.findById(orderId);
 
   if (!orderData) {
