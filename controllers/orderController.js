@@ -76,6 +76,9 @@ export const createOrder = asyncHandler(async (req, res) => {
       email: email,
       phone: phone,
     },
+    callbacks: {
+      finish: "http://localhost:5173/",
+    },
   };
 
   let token = await snap.createTransaction(parameter);
