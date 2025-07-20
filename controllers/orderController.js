@@ -133,56 +133,56 @@ export const callbackPayment = asyncHandler(async (req, res) => {
     `DEBUG callbackPayment: Parsed Notification -> Order ID: ${orderId}, Transaction Status: ${transactionStatus}, Fraud Status: ${fraudStatus}`
   );
 
-  //   const orderData = await Order.findById(orderId);
+  const orderData = await Order.findById(orderId);
 
-  //   if (!orderData) {
-  //     res.status(404);
-  //     throw new Error("order tidak ditemukan");
-  //   }
+  if (!orderData) {
+    res.status(404);
+    throw new Error("order tidak ditemukan");
+  }
 
-  //   if (transactionStatus == "capture") {
-  //     if (fraudStatus == "accept") {
-  //       orderData.status = "success";
-  //       const orderProduct = orderData.itemsdetail;
+  if (transactionStatus == "capture") {
+    if (fraudStatus == "accept") {
+      orderData.status = "success";
+      const orderProduct = orderData.itemsdetail;
 
-  //       for (const itemProduct of orderProduct) {
-  //         const product = await Product.findById(itemProduct.product);
+      for (const itemProduct of orderProduct) {
+        const product = await Product.findById(itemProduct.product);
 
-  //         if (!product) {
-  //           res.status(404);
-  //           throw new Error("produk tidak ditemukan");
-  //         }
+        if (!product) {
+          res.status(404);
+          throw new Error("produk tidak ditemukan");
+        }
 
-  //         product.stokproduct = product.stokproduct - itemProduct.productquantity;
+        product.stokproduct = product.stokproduct - itemProduct.productquantity;
 
-  //         await product.save();
-  //       }
-  //     }
-  //   } else if (transactionStatus == "settlement") {
-  //     orderData.status = "success";
-  //     const orderProduct = orderData.itemsdetail;
+        await product.save();
+      }
+    }
+  } else if (transactionStatus == "settlement") {
+    orderData.status = "success";
+    const orderProduct = orderData.itemsdetail;
 
-  //     for (const itemProduct of orderProduct) {
-  //       const product = await Product.findById(itemProduct.product);
+    for (const itemProduct of orderProduct) {
+      const product = await Product.findById(itemProduct.product);
 
-  //       if (!product) {
-  //         res.status(404);
-  //         throw new Error("produk tidak ditemukan");
-  //       }
+      if (!product) {
+        res.status(404);
+        throw new Error("produk tidak ditemukan");
+      }
 
-  //       product.stokproduct = product.stokproduct - itemProduct.productquantity;
+      product.stokproduct = product.stokproduct - itemProduct.productquantity;
 
-  //       await product.save();
-  //     }
-  //   } else if (transactionStatus == "deny") {
-  //     orderData.status = "pending";
-  //   } else if (transactionStatus == "cancel" || transactionStatus == "expire") {
-  //     orderData.status = "failed";
-  //   } else if (transactionStatus == "pending") {
-  //     orderData.status = "pending";
-  //   }
+      await product.save();
+    }
+  } else if (transactionStatus == "deny") {
+    orderData.status = "pending";
+  } else if (transactionStatus == "cancel" || transactionStatus == "expire") {
+    orderData.status = "failed";
+  } else if (transactionStatus == "pending") {
+    orderData.status = "pending";
+  }
 
-  //   await orderData.save();
+  await orderData.save();
 
-  //   return res.status(200).send("payment notif berhasil");
+  return res.status(200).send("payment notif berhasil");
 });
