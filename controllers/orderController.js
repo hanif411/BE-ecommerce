@@ -159,6 +159,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
         product.stokproduct = product.stokproduct - itemProduct.productquantity;
 
         await product.save();
+        await orderData.save();
       }
     }
   } else if (transactionStatus == "settlement") {
@@ -176,6 +177,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
       product.stokproduct = product.stokproduct - itemProduct.productquantity;
 
       await product.save();
+      await orderData.save();
     }
   } else if (transactionStatus == "deny") {
     orderData.status = "pending";
