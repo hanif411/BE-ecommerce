@@ -145,13 +145,27 @@ export const callbackPayment = asyncHandler(async (req, res) => {
           throw new Error("produk tidak ditemukan");
         }
 
-        product.stokproduct = product.stokproduct - itemProduct.quantity;
+        product.stokproduct = product.stokproduct - itemProduct.productquantity;
 
-        product.save();
+        await product.save();
       }
     }
   } else if (transactionStatus == "settlement") {
     orderData.status = "success";
+    const orderProduct = orderData.itemsdetail;
+
+    for (const itemProduct of orderProduct) {
+      const product = await Product.findById(itemProduct._id);
+
+      if (!product) {
+        res.status(404);
+        throw new Error("produk tidak ditemukan");
+      }
+
+      product.stokproduct = product.stokproduct - itemProduct.productquantity;
+
+      await product.save();
+    }
   } else if (transactionStatus == "deny") {
     orderData.status = "pending";
   } else if (transactionStatus == "cancel" || transactionStatus == "expire") {

@@ -42,7 +42,6 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    required: [true, "status harus di isi"],
     enum: ["success", "pending", "failed"],
   },
 });
