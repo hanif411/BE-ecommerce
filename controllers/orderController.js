@@ -126,6 +126,7 @@ export const callbackPayment = asyncHandler(async (req, res) => {
   let fraudStatus = statusResponse.fraud_status;
 
   const orderData = await Order.findById(orderId);
+  console.log(orderData);
 
   if (!orderData) {
     res.status(404);

@@ -43,6 +43,7 @@ const orderSchema = new Schema({
   status: {
     type: String,
     enum: ["success", "pending", "failed"],
+    default: "pending",
   },
 });
 
