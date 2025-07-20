@@ -55,7 +55,6 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const order = await Order.create({
     user: req.User._id,
-    status: "pending",
     itemsdetail: orderItem,
     total,
     firstName,
