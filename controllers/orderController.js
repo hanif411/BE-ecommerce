@@ -28,7 +28,12 @@ export const createOrder = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("produk tidak ditemukan");
     }
-    const { nameproduct, priceproduct, _id } = productdata;
+    const { nameproduct, priceproduct, _id, stokproduct } = productdata;
+
+    if (cartItem.productquantity > stokproduct) {
+      res.status(404);
+      throw new Error("jumlah product melebihi dari stok");
+    }
 
     const singleproduct = {
       productname: nameproduct,
