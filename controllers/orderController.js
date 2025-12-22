@@ -30,7 +30,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     }
     const { nameproduct, priceproduct, _id, stokproduct } = productdata;
 
-    if (cartItem.quantity > stokproduct) {
+    if (cart.quantity > stokproduct) {
       res.status(404);
       throw new Error("jumlah product melebihi dari stok");
     }
