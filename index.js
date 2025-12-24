@@ -21,17 +21,17 @@ const app = express();
 const port = 3000;
 
 //Middleware
-app.use(express.json());
-app.use(helmet());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("./public"));
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
   })
 );
+app.use(express.json());
+app.use(helmet());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("./public"));
 
 // parent router
 app.use("/api/v1/auth", authRouter);
