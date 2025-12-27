@@ -25,7 +25,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:3001",
-  "https://ecommerce-food-sigma.vercel.app/",
+  "https://ecommerce-food-sigma.vercel.app",
 ];
 
 const corsOptions = {
@@ -59,7 +59,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/order", orderRouter);
 
-app.use(helmet());
+// app.use(helmet());
 
 // error middleware tidak ada path nya
 app.use(notFound);
