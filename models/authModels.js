@@ -8,7 +8,6 @@ const userSchema = new Schema({
   name: {
     type: String,
     required: [true, "nama harus di isi"],
-    unique: [true, "name sudah di gunakan silahkan buat name yang lain"],
   },
   email: {
     type: String,
