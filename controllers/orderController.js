@@ -1,6 +1,5 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import Product from "../models/productModels.js";
-import User from "../models/authModels.js";
 import Order from "../models/orderModel.js";
 import midtransClient from "midtrans-client";
 
@@ -9,6 +8,44 @@ let snap = new midtransClient.Snap({
   isProduction: false,
   serverKey: process.env.MIDTRANS_SERVERKEY,
 });
+
+const syncOrderWithMidtrans = async (order) => {
+  if (order.paymentStatus !== "pending") return order;
+
+  try {
+    const statusResponse = await snap.transaction.status(order._id.toString());
+    const midtransStatus = statusResponse.transaction_status.toLowerCase();
+
+    let newStatus = order.paymentStatus;
+    if (["settlement", "capture"].includes(midtransStatus)) {
+      newStatus = "success";
+    } else if (
+      ["expired", "cancel", "deny", "expire"].includes(midtransStatus)
+    ) {
+      newStatus = "failed";
+    }
+
+    if (newStatus !== order.paymentStatus) {
+      order.paymentStatus = newStatus;
+
+      // Logic potong stok di sini kalau status berubah jadi success
+      if (newStatus === "success") {
+        for (const item of order.itemsdetail) {
+          await Product.findByIdAndUpdate(item.product, {
+            $inc: { stokproduct: -item.productquantity },
+          });
+        }
+      }
+      await order.save();
+    }
+  } catch (error) {
+    console.error(
+      "Sync Error (mungkin transaksi belum dibuat):",
+      error.message
+    );
+  }
+  return order;
+};
 
 export const createOrder = asyncHandler(async (req, res) => {
   const { firstName, lastName, phone, email, cartItem } = req.body;
@@ -28,7 +65,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("produk tidak ditemukan");
     }
-    const { nameproduct, priceproduct, _id, stokproduct } = productdata;
+    const { nameproduct, priceproduct, _id, stokproduct, imageproduct } =
+      productdata;
 
     if (cart.quantity > stokproduct) {
       res.status(404);
@@ -40,6 +78,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       productprice: priceproduct,
       product: _id,
       productquantity: cart.quantity,
+      productimage: imageproduct,
     };
 
     const shortname = nameproduct.substring(0, 50);
@@ -85,21 +124,29 @@ export const createOrder = asyncHandler(async (req, res) => {
     },
   };
 
-  let token = await snap.createTransaction(parameter);
+  try {
+    const transaction = await snap.createTransaction(parameter);
+    let token = transaction.token;
 
-  return res.status(201).json({
-    success: true,
-    order,
-    total,
-    token,
-    message: "Order created successfully",
-  });
+    return res.status(201).json({
+      success: true,
+      order,
+      total,
+      token,
+      redirect_url: transaction.redirect_url,
+      message: "Order created successfully",
+    });
+  } catch (error) {
+    console.error("Midtrans Error:", error.message);
+    res.status(500);
+    throw new Error("Gagal membuat transaksi di Midtrans: " + error.message);
+  }
 });
 
 export const allOrder = asyncHandler(async (req, res) => {
   const allorder = await Order.find();
   return res.status(200).json({
-    allorder,
+    data: allorder,
     success: true,
     message: "All orders retrieved successfully",
   });
@@ -115,30 +162,23 @@ export const detailOrder = asyncHandler(async (req, res) => {
 });
 
 export const currentUserOrder = asyncHandler(async (req, res) => {
-  const order = await Order.find({ user: req.User._id });
+  const orders = await Order.find({ user: req.User._id });
+  const updatedOrder = await Promise.all(
+    orders.map((order) => syncOrderWithMidtrans(order))
+  );
   return res.status(200).json({
-    data: order,
+    data: updatedOrder,
     success: true,
     message: "Current user orders retrieved successfully",
   });
 });
 
 export const callbackPayment = asyncHandler(async (req, res) => {
-  console.log("--- DEBUG callbackPayment START ---");
-  console.log(
-    "DEBUG callbackPayment: Request Body received:",
-    JSON.stringify(req.body, null, 2)
-  );
-
   let statusResponse = await snap.transaction.notification(req.body);
 
   let orderId = statusResponse.order_id;
   let transactionStatus = statusResponse.transaction_status;
   let fraudStatus = statusResponse.fraud_status;
-
-  console.log(
-    `DEBUG callbackPayment: Parsed Notification -> Order ID: ${orderId}, Transaction Status: ${transactionStatus}, Fraud Status: ${fraudStatus}`
-  );
 
   const orderData = await Order.findById(orderId);
   console.log(`order data = ${orderData}`);
@@ -193,4 +233,25 @@ export const callbackPayment = asyncHandler(async (req, res) => {
   await orderData.save();
 
   return res.status(200).send("payment notif berhasil");
+});
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { orderStatus } = req.body;
+
+  const order = await Order.findById(id);
+
+  if (!order) {
+    res.status(404);
+    throw new Error("Order tidak ditemukan");
+  }
+
+  order.orderStatus = orderStatus;
+  const updatedOrder = await order.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Status order berhasil diperbarui",
+    data: updatedOrder,
+  });
 });

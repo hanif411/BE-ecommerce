@@ -16,8 +16,8 @@ const createSendResToken = (user, statuscode, res) => {
   const cookieOption = {
     expires: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: false,
+    sameSite: "lax",
   };
 
   res.cookie("jwt", token, cookieOption);
