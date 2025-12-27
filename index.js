@@ -36,13 +36,17 @@ const corsOptions = {
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(null, false);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.use((req, res, next) => {
+  res.header("Vary", "Origin");
+  next();
+});
 app.use(cors(corsOptions));
 
 app.use(express.json());

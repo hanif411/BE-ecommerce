@@ -13,7 +13,10 @@ import {
 } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-
+router.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 router.post("/", protectedMiddleware, createOrder);
 router.get("/", protectedMiddleware, adminMiddleware, allOrder);
 router.get("/current/user", protectedMiddleware, currentUserOrder);
