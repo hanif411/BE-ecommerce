@@ -16,7 +16,6 @@ const router = express.Router();
 
 router.post("/", protectedMiddleware, createOrder);
 router.get("/", protectedMiddleware, adminMiddleware, allOrder);
-router.get("/:id", protectedMiddleware, adminMiddleware, detailOrder);
 router.get("/current/user", protectedMiddleware, currentUserOrder);
 router.post("/callback/midtrans", callbackPayment);
 router.patch(
@@ -25,5 +24,6 @@ router.patch(
   adminMiddleware,
   updateOrderStatus
 );
+router.get("/:id", protectedMiddleware, adminMiddleware, detailOrder);
 
 export default router;
