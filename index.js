@@ -47,7 +47,6 @@ app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
 app.use(express.json());
-app.use(helmet());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("./public"));
@@ -56,6 +55,8 @@ app.use(express.static("./public"));
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/order", orderRouter);
+
+app.use(helmet());
 
 // error middleware tidak ada path nya
 app.use(notFound);
