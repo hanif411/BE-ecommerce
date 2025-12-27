@@ -63,12 +63,15 @@ app.use(notFound);
 // errorhandler ketika gagal ke database
 app.use(errorHandler);
 
-//server
-app.listen(port, () => {
-  console.log(`server sudah jalan di port ${port}`);
-});
+mongoose
+  .connect(process.env.DATABASE)
+  .then(() => {
+    console.log("berhasil connect ke database");
 
-//conect to database
-mongoose.connect(process.env.DATABASE, {}).then(() => {
-  console.log("berhasil connect ke database");
-});
+    app.listen(port, () => {
+      console.log(`server sudah jalan di port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("DB connection error:", err);
+  });
